@@ -1,0 +1,6 @@
+# Not a workspace; this file only carries pnpm settings.
+# unrs-resolver (an eslint-config-next dependency) links a platform binary in a postinstall script.
+allowBuilds:
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - '@alacrity-education/kromata-core@0.1.0'

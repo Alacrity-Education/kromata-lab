@@ -1,0 +1,81 @@
+.wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  border-radius: var(--radius);
+  touch-action: none;
+  user-select: none;
+  cursor: ew-resize;
+}
+
+.base,
+.overlay {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* The "after" image sits on top, clipped to the handle position. */
+.overlayWrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+.handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35);
+  pointer-events: none;
+}
+
+.grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.45);
+  display: grid;
+  place-items: center;
+  color: #10131a;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.tag {
+  position: absolute;
+  bottom: 6px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgb(0 0 0 / 0.6);
+  color: #fff;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.tagLeft {
+  left: 6px;
+}
+
+.tagRight {
+  right: 6px;
+}

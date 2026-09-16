@@ -1,0 +1,33 @@
+{
+  "name": "kromata-lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Kromata Lab - drop in images, try palettes, judge the results.",
+  "license": "MIT",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@alacrity-education/kromata-core": "^0.1.0",
+    "fflate": "^0.8.3",
+    "next": "^16.3.5",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "sharp": "^0.35.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.1",
+    "eslint": "^9.39.0",
+    "eslint-config-next": "^16.3.5",
+    "globals": "^16.5.0",
+    "typescript": "^5.9.3"
+  }
+}

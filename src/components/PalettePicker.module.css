@@ -1,0 +1,115 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 290px;
+  overflow-y: auto;
+  padding-right: 3px;
+}
+
+.option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 5px 6px;
+}
+
+.option:hover {
+  background: var(--surface-2);
+}
+
+.option.active {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.name {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.count {
+  color: var(--text-faint);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The swatch strip is the actual content here; the label is secondary. */
+.swatches {
+  display: flex;
+  height: 14px;
+  margin-top: 4px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.swatch {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.customBlock {
+  margin-top: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 62px;
+  resize: vertical;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 7px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.nameInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px 7px;
+  font-size: 12px;
+}
+
+.save {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.save:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.message {
+  margin: 6px 0 0;
+  font-size: 12px;
+}
+
+.error {
+  color: var(--danger);
+}
+
+.ok {
+  color: var(--ok);
+}
