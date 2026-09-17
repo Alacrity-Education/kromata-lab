@@ -62,5 +62,16 @@ The core library keeps its own DECISIONS.md in the
   404s — it looks like a CSS bug, not a deployment one. Verified by hitting it.
 - **`node:22-bookworm-slim`, not Alpine.** sharp ships prebuilt glibc binaries, so this needs no
   build toolchain and no extra apt packages.
-- **`pnpm-workspace.yaml` exists in a non-workspace project** because pnpm 11 reads its settings
-  (`allowBuilds`) from there.
+- **`pnpm-workspace.yaml` exists in a non-workspace project, and declares `packages: ['.']`.**
+  pnpm 11 reads its settings (`allowBuilds`, `minimumReleaseAgeExclude`) only from this file, but
+  pnpm 9 and 10 read the file as a workspace definition and abort with "packages field missing or
+  empty" — which is exactly how a Nixpacks build fails. The `packages` entry satisfies both.
+  Verified against pnpm 9, 10 and 11.
+- **`packageManager` is pinned**, so corepack and any build platform use the pnpm the lockfile was
+  written by instead of guessing.
+- **`@alacrity-education/kromata-core` is excluded from pnpm's minimum-release-age policy.** pnpm 11
+  rejects dependencies published within roughly the last day, which blocks any build for a day
+  after we publish the library. The exclusion is scoped to our own first-party package rather than
+  turning the policy off.
+- **Build with the Dockerfile, not Nixpacks.** The Dockerfile is pinned and tested; Nixpacks infers
+  the toolchain and does not know about the standalone output.

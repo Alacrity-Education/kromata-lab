@@ -41,6 +41,12 @@ healthcheck on `/api/palettes`.
 Because the upload store lives in one process, run a **single replica**; two behind a round-robin
 proxy would miss each other's uploads.
 
+### Coolify
+
+Set the build pack to **Dockerfile**, not Nixpacks. The Dockerfile pins Node and pnpm and handles
+Next's standalone output; Nixpacks infers the toolchain and gets both wrong. No volume and no
+environment variables are required. Expose port 3000 and run one replica.
+
 ## How it works
 
 **Upload once, preview from a copy.** Files are stored server side and referred to by id. Previews

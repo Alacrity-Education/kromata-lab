@@ -1,6 +1,13 @@
-# Not a workspace; this file only carries pnpm settings.
+# Single package, not a monorepo. The packages field is here because pnpm 9 and 10 read this file
+# as a workspace definition and refuse to install without it; pnpm 11 reads the settings below.
+packages:
+  - '.'
+
 # unrs-resolver (an eslint-config-next dependency) links a platform binary in a postinstall script.
 allowBuilds:
   unrs-resolver: true
+
+# Our own first-party package, published from the sibling kromata repo. pnpm 11 applies a default
+# minimum release age to guard against compromised fresh publishes; we know this one's provenance.
 minimumReleaseAgeExclude:
-  - '@alacrity-education/kromata-core@0.1.0'
+  - '@alacrity-education/kromata-core'
