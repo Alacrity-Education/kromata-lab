@@ -15,20 +15,15 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   const { id } = await params;
-  let bytes: Buffer | null = null;
-  try {
-    bytes = await readUploadBytes(id, true);
-  } catch {
-    bytes = null;
-  }
+  const bytes = readUploadBytes(id, true);
   if (!bytes) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   return new NextResponse(new Uint8Array(bytes), {
     headers: {
       'Content-Type': 'image/png',
       'Content-Length': String(bytes.byteLength),
-      // Immutable: an upload id always names the same bytes.
-      'Cache-Control': 'private, max-age=86400, immutable',
+      // Immutable: an upload id always names the same bytes for as long as it exists.
+      'Cache-Control': 'private, max-age=3600, immutable',
     },
   });
 }

@@ -19,25 +19,27 @@ pnpm dev                      # http://localhost:3000
 pnpm build && pnpm start      # production
 ```
 
-Those are the only two commands. Everything the Lab persists lives in `data/`, outside the Next
-build output:
+Those are the only two commands.
 
-```
-data/uploads/      originals + downscaled preview copies, swept after 24h
-data/palettes.json custom palettes the team has saved
-data/usage.jsonl   the usage log
-```
+**The Lab writes nothing to disk.** Uploads are held in a bounded in-memory store and dropped on
+restart, so the container is stateless: no volume, nothing to back up, nothing to migrate. Set
+`KROMATA_MAX_STORE_MB` (default 512) to change the ceiling; past it the least recently used
+uploads are evicted, and an image that has been evicted reports "no longer on the server, upload
+it again" rather than failing silently.
 
 ### Docker
 
 ```bash
 docker build -t kromata-lab .
-docker run -p 3000:3000 -v "$(pwd)/data:/data" kromata-lab
+docker run -p 3000:3000 kromata-lab
 ```
 
-Uses Next's standalone output and mounts `data/` as a volume. Builds with the legacy builder as
-well as BuildKit, and needs no apt packages — sharp ships prebuilt glibc binaries. There is a
-healthcheck on `/api/stats`.
+Uses Next's standalone output. No volumes, no environment required. Builds with the legacy builder
+as well as BuildKit, and needs no apt packages — sharp ships prebuilt glibc binaries. There is a
+healthcheck on `/api/palettes`.
+
+Because the upload store lives in one process, run a **single replica**; two behind a round-robin
+proxy would miss each other's uploads.
 
 ## How it works
 
@@ -55,25 +57,8 @@ renders.
 one, or all of them as a zip.
 
 **Palettes.** Every preset from the core library, plus a custom box that takes a hex list, a
-newline list, or JSON. Naming a custom palette saves it to the server so the rest of the team can
-pick it.
-
-## Usage log and /stats
-
-Every conversion appends a line to `data/usage.jsonl` with a timestamp, an anonymous session id,
-the palette, mode, image dimensions and processing time. Thumbs up/down writes a second record
-joined to the conversion by id — ratings arrive after the conversion, and editing a line in an
-append-only file means rewriting the file.
-
-Conversions are tagged `preview` or `download`. Previews fire on every debounced control change, so
-counting them alone measures slider fiddling rather than use; **downloads are the number worth
-watching**, and both are reported.
-
-- `/stats` — the report, rendered.
-- `/api/stats` — the same data as JSON: totals, per day, per palette, per session, per mode,
-  average rating, median and p95 processing time.
-
-No auth: this runs on an internal network. No telemetry beyond the log described here.
+newline list, or JSON. Custom colors travel with each render and are not stored. To add a palette
+permanently, add it to the core library's presets and bump the dependency here.
 
 ## API
 
@@ -81,11 +66,9 @@ No auth: this runs on an internal network. No telemetry beyond the log described
 | --- | --- | --- |
 | `/api/upload` | POST | multipart, accepts JPEG/PNG/WebP up to 25 MB each |
 | `/api/preview/[id]` | GET | the stored downscaled original, the "before" half |
-| `/api/convert` | POST | maps one upload; returns image bytes plus `X-Kromata-Conversion-Id` |
+| `/api/convert` | POST | maps one upload; returns image bytes |
 | `/api/download-all` | POST | converts several at full resolution, returns a zip |
-| `/api/rate` | POST | thumbs up/down on a conversion id |
-| `/api/palettes` | GET/POST | list presets and saved palettes; save a new one |
-| `/api/stats` | GET | the usage report as JSON |
+| `/api/palettes` | GET | the built-in presets |
 
 ## Working on core at the same time
 

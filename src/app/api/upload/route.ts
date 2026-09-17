@@ -1,12 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { attachSession, readSession } from '@/lib/session';
-import {
-  ACCEPTED_TYPES,
-  MAX_UPLOAD_BYTES,
-  saveUpload,
-  sweepOldUploads,
-  type UploadMeta,
-} from '@/lib/storage';
+import { ACCEPTED_TYPES, MAX_UPLOAD_BYTES, saveUpload, type UploadMeta } from '@/lib/storage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -19,15 +12,13 @@ interface RejectedFile {
 }
 
 /**
- * Accept one or more images and keep them server side.
+ * Accept one or more images and hold them in memory.
  *
  * Uploading once and referring to the result by id is what keeps the controls responsive: the
- * interactive preview re-renders from a stored copy instead of re-posting the original file on
+ * interactive preview re-renders from the stored copy instead of re-posting the original file on
  * every debounced change.
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const session = readSession(req);
-
   let form: FormData;
   try {
     form = await req.formData();
@@ -57,8 +48,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       continue;
     }
     try {
-      const bytes = Buffer.from(await file.arrayBuffer());
-      uploaded.push(await saveUpload(bytes, file.name, file.type));
+      uploaded.push(await saveUpload(Buffer.from(await file.arrayBuffer()), file.name, file.type));
     } catch (err) {
       rejected.push({
         name: file.name,
@@ -67,9 +57,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
   }
 
-  // Opportunistic cleanup, so nothing has to be scheduled and an idle server does no work.
-  void sweepOldUploads();
-
   const status = uploaded.length === 0 ? 400 : 200;
-  return attachSession(NextResponse.json({ uploaded, rejected }, { status }), session);
+  return NextResponse.json({ uploaded, rejected }, { status });
 }

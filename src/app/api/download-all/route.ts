@@ -1,12 +1,9 @@
-import { randomUUID } from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
 import { zip, type Zippable } from 'fflate';
 import { mapImage } from '@alacrity-education/kromata-core';
 import { EXTENSION, parseConvertRequest } from '@/lib/convert-options';
 import { resolveRequestedPalette } from '@/lib/palettes';
-import { attachSession, readSession } from '@/lib/session';
 import { readUploadBytes, readUploadMeta } from '@/lib/storage';
-import { appendUsage } from '@/lib/usage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -24,8 +21,6 @@ function zipAsync(files: Zippable): Promise<Uint8Array> {
 
 /** Convert several stored uploads at full resolution and return them as one zip. */
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const session = readSession(req);
-
   let body: Record<string, unknown>;
   try {
     body = (await req.json()) as Record<string, unknown>;
@@ -53,7 +48,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   let palette;
   let label;
   try {
-    ({ palette, label } = await resolveRequestedPalette(options.palette));
+    ({ palette, label } = resolveRequestedPalette(options.palette));
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Bad palette' },
@@ -67,14 +62,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const used = new Set<string>();
 
   for (const id of ids) {
-    const meta = await readUploadMeta(id);
-    const source = meta ? await readUploadBytes(id, false) : null;
+    const meta = readUploadMeta(id);
+    const source = meta ? readUploadBytes(id, false) : null;
     if (!meta || !source) {
       failures.push(id);
       continue;
     }
     try {
-      const started = performance.now();
       const result = await mapImage(source, {
         palette,
         mode: options.mode,
@@ -85,7 +79,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         preserveAlpha: true,
         output: { format: options.format, quality: options.quality },
       });
-      const ms = Math.round(performance.now() - started);
 
       const stem = meta.name.replace(/\.[^.]+$/, '') || 'image';
       let name = `${stem}.${slug}.${EXTENSION[options.format]}`;
@@ -96,21 +89,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       used.add(name);
       entries[name] = new Uint8Array(result);
 
-      void appendUsage({
-        t: 'conv',
-        id: randomUUID(),
-        at: new Date().toISOString(),
-        sid: session.sid,
-        kind: 'download',
-        palette: label,
-        mode: options.mode,
-        colorSpace: options.colorSpace,
-        dither: options.dither,
-        blur: options.blur,
-        width: meta.width,
-        height: meta.height,
-        ms,
-      });
     } catch {
       failures.push(meta.name);
     }
@@ -123,7 +101,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // Copied into a fresh view so the type is a plain ArrayBuffer-backed Uint8Array, which is
   // what BodyInit accepts.
   const archive = new Uint8Array(await zipAsync(entries));
-  const res = new NextResponse(archive, {
+  return new NextResponse(archive, {
     status: 200,
     headers: {
       'Content-Type': 'application/zip',
@@ -133,5 +111,4 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       ...(failures.length > 0 ? { 'X-Kromata-Failed': String(failures.length) } : {}),
     },
   });
-  return attachSession(res, session);
 }

@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Controls, { type Settings } from './Controls';
 import Dropzone, { type RejectedFile } from './Dropzone';
@@ -36,9 +35,8 @@ function saveBlob(blob: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-export default function LabClient({ initialPalettes }: { initialPalettes: PaletteSummary[] }) {
-  const [palettes, setPalettes] = useState(initialPalettes);
-  const [paletteKey, setPaletteKey] = useState(initialPalettes[0]?.key ?? 'nord');
+export default function LabClient({ palettes }: { palettes: PaletteSummary[] }) {
+  const [paletteKey, setPaletteKey] = useState(palettes[0]?.key ?? 'nord');
   const [customText, setCustomText] = useState('');
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [view, setView] = useState<ViewMode>('split');
@@ -113,14 +111,13 @@ export default function LabClient({ initialPalettes }: { initialPalettes: Palett
             const body = await res.json().catch(() => ({}));
             throw new Error(body.error ?? `Conversion failed (${res.status})`);
           }
-          const conversionId = res.headers.get('X-Kromata-Conversion-Id') ?? undefined;
           const ms = Number(res.headers.get('X-Kromata-Ms') ?? 0);
           const url = URL.createObjectURL(await res.blob());
           setResultUrl(id, url);
           setItems((prev) =>
             prev.map((i) =>
               i.id === id
-                ? { ...i, status: 'done', resultUrl: url, conversionId, ms, rating: undefined }
+                ? { ...i, status: 'done', resultUrl: url, ms }
                 : i,
             ),
           );
@@ -173,17 +170,6 @@ export default function LabClient({ initialPalettes }: { initialPalettes: Palett
     }
   }
 
-  async function rate(item: Item, rating: 1 | -1) {
-    if (!item.conversionId) return;
-    const next = item.rating === rating ? undefined : rating;
-    setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, rating: next } : i)));
-    if (next === undefined) return; // toggling off is a local undo; nothing to record
-    await fetch('/api/rate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: item.conversionId, rating: next }),
-    }).catch(() => setBanner('Could not record that rating.'));
-  }
 
   async function download(item: Item) {
     setDownloadingId(item.id);
@@ -243,9 +229,6 @@ export default function LabClient({ initialPalettes }: { initialPalettes: Palett
       <aside className={styles.sidebar}>
         <div className={styles.brand}>
           <h1 className={styles.title}>Kromata Lab</h1>
-          <Link className={styles.statsLink} href="/stats">
-            Stats
-          </Link>
         </div>
 
         <Dropzone onFiles={(f) => void upload(f)} busy={uploading} rejected={rejected} />
@@ -258,10 +241,6 @@ export default function LabClient({ initialPalettes }: { initialPalettes: Palett
             custom={customText}
             onChange={setPaletteKey}
             onCustomChange={setCustomText}
-            onSaved={(next, key) => {
-              setPalettes(next);
-              setPaletteKey(key);
-            }}
           />
         </section>
 
@@ -323,7 +302,6 @@ export default function LabClient({ initialPalettes }: { initialPalettes: Palett
                 key={item.id}
                 item={item}
                 view={view}
-                onRate={(i, r) => void rate(i, r)}
                 onDownload={(i) => void download(i)}
                 onRemove={remove}
                 downloading={downloadingId === item.id}

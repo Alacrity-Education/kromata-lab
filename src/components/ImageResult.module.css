@@ -113,11 +113,6 @@
   border-color: var(--accent);
 }
 
-.rated {
-  border-color: var(--accent);
-  background: var(--surface-2);
-}
-
 .remove:hover {
   border-color: var(--danger);
   color: var(--danger);

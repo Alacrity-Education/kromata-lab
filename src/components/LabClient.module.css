@@ -32,10 +32,6 @@
   letter-spacing: -0.01em;
 }
 
-.statsLink {
-  font-size: 12px;
-}
-
 .section {
   display: flex;
   flex-direction: column;

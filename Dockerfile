@@ -28,8 +28,8 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
-# Everything the Lab persists lives here, mounted as a volume.
-ENV KROMATA_DATA_DIR=/data
+# Ceiling on the in-memory upload store. Nothing is written to disk.
+ENV KROMATA_MAX_STORE_MB=512
 
 # The standalone server is self-contained except for two things Next does not put inside it.
 COPY --from=build /app/.next/standalone ./
@@ -37,12 +37,11 @@ COPY --from=build /app/.next/standalone ./
 # stylesheet and client chunk 404s while the server itself still appears to work.
 COPY --from=build /app/.next/static ./.next/static
 
-RUN mkdir -p /data && chown -R node:node /data /app
+RUN chown -R node:node /app
 USER node
-VOLUME ["/data"]
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=4s --start-period=10s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/stats').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/palettes').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 CMD ["node", "server.js"]

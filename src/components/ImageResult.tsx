@@ -12,29 +12,19 @@ export interface Item {
   height: number;
   status: 'pending' | 'working' | 'done' | 'error';
   resultUrl?: string;
-  conversionId?: string;
   ms?: number;
   error?: string;
-  rating?: 1 | -1;
 }
 
 interface Props {
   item: Item;
   view: ViewMode;
-  onRate: (item: Item, rating: 1 | -1) => void;
   onDownload: (item: Item) => void;
   onRemove: (item: Item) => void;
   downloading: boolean;
 }
 
-export default function ImageResult({
-  item,
-  view,
-  onRate,
-  onDownload,
-  onRemove,
-  downloading,
-}: Props) {
+export default function ImageResult({ item, view, onDownload, onRemove, downloading }: Props) {
   const before = `/api/preview/${item.id}`;
   const working = item.status === 'working' || item.status === 'pending';
 
@@ -85,26 +75,6 @@ export default function ImageResult({
           {item.width}×{item.height}
         </span>
         <span className={styles.actions}>
-          <button
-            type="button"
-            className={`${styles.iconBtn} ${item.rating === 1 ? styles.rated : ''}`}
-            title="Good result"
-            aria-pressed={item.rating === 1}
-            disabled={!item.conversionId}
-            onClick={() => onRate(item, 1)}
-          >
-            ▲
-          </button>
-          <button
-            type="button"
-            className={`${styles.iconBtn} ${item.rating === -1 ? styles.rated : ''}`}
-            title="Bad result"
-            aria-pressed={item.rating === -1}
-            disabled={!item.conversionId}
-            onClick={() => onRate(item, -1)}
-          >
-            ▼
-          </button>
           <button
             type="button"
             className={styles.iconBtn}
