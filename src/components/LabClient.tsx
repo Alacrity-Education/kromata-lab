@@ -16,7 +16,7 @@ const DEFAULT_SETTINGS: Settings = {
   averageBoxSize: 2,
   blur: 0,
   dither: 'none',
-  colorSpace: 'lab',
+  colorSpace: 'rgb',
 };
 
 interface UploadResponse {

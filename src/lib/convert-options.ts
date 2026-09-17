@@ -28,7 +28,7 @@ export const DEFAULTS = {
   averageBoxSize: 2,
   blur: 0,
   dither: 'none',
-  colorSpace: 'lab',
+  colorSpace: 'rgb',
   format: 'png',
   quality: 90,
 } as const;

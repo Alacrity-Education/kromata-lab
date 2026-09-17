@@ -6,13 +6,6 @@ const config: NextConfig = {
   serverExternalPackages: ['sharp', '@alacrity-education/kromata-core'],
   // Needed by the Dockerfile: emits .next/standalone with a self-contained server.
   output: 'standalone',
-  experimental: {
-    serverActions: {
-      // Uploads go through a route handler, not a server action, but the body size limit here
-      // still applies to the multipart parse.
-      bodySizeLimit: '30mb',
-    },
-  },
 };
 
 export default config;

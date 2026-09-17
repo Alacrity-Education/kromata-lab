@@ -109,8 +109,8 @@ export default function Controls({ settings, onChange }: Props) {
           value={settings.colorSpace}
           onChange={(v) => set('colorSpace', v)}
           options={[
-            { value: 'lab' as const, label: 'LAB' },
             { value: 'rgb' as const, label: 'RGB' },
+            { value: 'lab' as const, label: 'LAB' },
           ]}
         />
       </div>
